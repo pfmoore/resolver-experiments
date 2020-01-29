@@ -1,0 +1,6 @@
+1. Extras are a problem. Look at identify and the stuff in passa,
+   the extra is part of the identifier but needs a dependency on
+   the "non-extra" name to make sure all candidates get the same
+   version.
+2. Work out what get_preference does.
+3. Not sure if the trace points in reporter are that useful...
