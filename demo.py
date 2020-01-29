@@ -15,13 +15,17 @@ from index import get, Requirement
 
 class Reporter(BaseReporter):
     def starting(self):
-        print("Starting")
+        #print("Starting")
+        pass
     def starting_round(self, index):
-        print("Starting round")
+        #print("Starting round")
+        pass
     def ending_round(self, index, state):
-        print("Ending round")
+        #print("Ending round")
+        pass
     def ending(self, state):
-        print("Ending")
+        #print("Ending")
+        pass
 
 class Provider(AbstractProvider):
     def identify(self, dependency):
@@ -49,18 +53,23 @@ class Provider(AbstractProvider):
         print(f"get_dependencies({candidate})")
         return candidate.dependencies()
 
-# Things I want to resolve.
-requirements = [Requirement("requests")]
+def main(reqs):
+    # Things I want to resolve.
+    requirements = [Requirement(r) for r in reqs]
 
-provider = Provider()
-reporter = Reporter()
+    provider = Provider()
+    reporter = Reporter()
 
-# Create the (reusable) resolver.
-resolver = Resolver(provider, reporter)
+    # Create the (reusable) resolver.
+    resolver = Resolver(provider, reporter)
 
-# Kick off the resolution process, and get the final result.
-result = resolver.resolve(requirements)
-for project, c in result.mapping.items():
-    print(project, c.name, c.version)
+    # Kick off the resolution process, and get the final result.
+    result = resolver.resolve(requirements)
+    for project, c in result.mapping.items():
+        print(project, c.name, c.version)
 
-print(result)
+    print(result)
+
+if __name__ == "__main__":
+    import sys
+    main(sys.argv[1:])

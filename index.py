@@ -25,6 +25,7 @@ class Candidate:
 
     def get_metadata(self):
         if self.filetype != "wheel":
+            print(f"{self.name}: No wheel fo type {self.filetype}")
             return
         if self.metadata:
             return

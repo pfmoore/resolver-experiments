@@ -4,3 +4,7 @@
    version.
 2. Work out what get_preference does.
 3. Not sure if the trace points in reporter are that useful...
+
+Resolving requests is currently looping on cryptography 2.8. Not sure why.
+  - Not including sdists?
+  - Extras?
