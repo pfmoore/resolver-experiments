@@ -29,29 +29,34 @@ class Reporter(BaseReporter):
 
 class Provider(AbstractProvider):
     def identify(self, dependency):
-        print(f"identify({dependency})")
         return dependency.name
     def get_preference(self, resolution, candidates, information):
-        print(f"get_preference()")
-        # Need to work out what this is for!
         return len(candidates)
     def find_matches(self, requirement):
-        print(f"find_matches({requirement})")
         candidates = []
         for c in get(requirement.name, requirement.extras):
             version = str(c.version)
-            #print(f"Checking {c.name}:{version}")
             if version in requirement.specifier and c.filetype == "wheel":
                 candidates.append(c)
         return candidates
     def is_satisfied_by(self, requirement, candidate):
-        print(f"is_satisfied_by({requirement}, {candidate})")
         if requirement.name != candidate.name:
             return False
         return candidate.version in requirement.specifier
     def get_dependencies(self, candidate):
-        print(f"get_dependencies({candidate})")
         return list(candidate.dependencies())
+
+def display_resolution(result):
+
+    print("--- Pinned Candidates ---")
+    for name, candidate in result.mapping.items():
+        print(f"{name}: {candidate.name} {candidate.version}")
+
+    print()
+    print("--- Dependency Graph ---")
+    for name in result.graph:
+        targets = ", ".join(result.graph.iter_children(name))
+        print(f"{name} -> {targets}")
 
 def main(reqs):
     # Things I want to resolve.
@@ -65,10 +70,8 @@ def main(reqs):
 
     # Kick off the resolution process, and get the final result.
     result = resolver.resolve(requirements)
-    for project, c in result.mapping.items():
-        print(project, c.name, c.version)
 
-    print(result)
+    display_resolution(result)
 
 if __name__ == "__main__":
     import sys

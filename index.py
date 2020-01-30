@@ -25,7 +25,8 @@ class Candidate:
         self.extras = extras
 
     def __str__(self):
-        return f"Candidate({self.name}[{self.extras}], {self.version})"
+        extras = ', '.join(sorted(self.extras))
+        return f"Candidate({self.name}[{extras}], {self.version})"
 
     def get_metadata(self):
         if self.filetype != "wheel":
@@ -58,8 +59,11 @@ class Candidate:
                 r = Requirement(d)
                 if r.marker is None:
                     yield r
+                elif len(self.extras) == 0:
+                    if r.marker.evaluate({'extra': ''}):
+                        yield r
                 else:
-                    for e in extras:
+                    for e in self.extras:
                         if r.marker.evaluate({'extra': e}):
                             yield r
         # If we have extras, we also depend on the base package having
@@ -109,7 +113,8 @@ def get(name, extras=None):
             if py_ver not in spec:
                 continue
         #TODO: Skip incompatible wheels
-        yield c
+        if c.filetype == "wheel":
+            yield c
 
 def main(name):
     for c in get(name):
