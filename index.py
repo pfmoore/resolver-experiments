@@ -3,7 +3,7 @@ import html5lib
 from urllib.parse import urlparse
 from packaging.markers import Marker
 from packaging.specifiers import SpecifierSet
-from packaging.version import Version
+from packaging.version import Version, InvalidVersion
 from packaging.requirements import Requirement # Suitable for resolvelib
 import sys
 from io import BytesIO
@@ -11,17 +11,21 @@ from zipfile import ZipFile
 from email.parser import BytesParser
 
 class Candidate:
-    def __init__(self, url):
+    def __init__(self, url, extras=None):
         self.url = url
         path = urlparse(url).path
         self.filename = path.rpartition('/')[-1]
         self.filetype, self.name, self.version = parse(self.filename)
         if self.version:
-            self.version = Version(self.version)
+            try:
+                self.version = Version(self.version)
+            except InvalidVersion:
+                self.version = Version("0")
         self.metadata = None
+        self.extras = extras
 
     def __str__(self):
-        return f"Candidate({self.name}, {self.version})"
+        return f"Candidate({self.name}[{self.extras}], {self.version})"
 
     def get_metadata(self):
         if self.filetype != "wheel":
@@ -48,9 +52,20 @@ class Candidate:
         self.get_metadata()
         if self.metadata:
             deps = self.metadata.get_all("Requires-Dist", [])
+            extras = self.extras if self.extras else ['']
             print(f"{self.name} -> {deps}")
-            return [Requirement(d) for d in deps]
-        return []
+            for d in deps:
+                r = Requirement(d)
+                if r.marker is None:
+                    yield r
+                else:
+                    for e in extras:
+                        if r.marker.evaluate({'extra': e}):
+                            yield r
+        # If we have extras, we also depend on the base package having
+        # the same version
+        if self.extras:
+            yield Requirement(f"{self.name} == {self.version}")
 
 py_ver = Version(".".join(map(str, sys.version_info[:2])))
 print(py_ver)
@@ -79,13 +94,13 @@ def parse(filename):
 
     return filetype, name, version
 
-def get(name):
+def get(name, extras=None):
     url = f"https://pypi.org/simple/{name}"
     data = requests.get(url).content
     #print(data)
     doc = html5lib.parse(data, namespaceHTMLElements=False)
     for i in doc.findall(".//a"):
-        c = Candidate(i.attrib["href"])
+        c = Candidate(i.attrib["href"], extras)
         if c.version is None:
             continue
         py_req = i.attrib.get("data-requires-python")

@@ -8,3 +8,8 @@
 Resolving requests is currently looping on cryptography 2.8. Not sure why.
   - Not including sdists?
   - Extras?
+Looks like it was extras. ipython fails (no versions available). I suspect
+that's from only considering wheels.
+
+Debugging resolver failures is hard, f you don't know what you are doing!
+Maybe add a load of diagnostic tracing? Maybe it's already present?

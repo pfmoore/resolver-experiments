@@ -38,7 +38,7 @@ class Provider(AbstractProvider):
     def find_matches(self, requirement):
         print(f"find_matches({requirement})")
         candidates = []
-        for c in get(requirement.name):
+        for c in get(requirement.name, requirement.extras):
             version = str(c.version)
             #print(f"Checking {c.name}:{version}")
             if version in requirement.specifier and c.filetype == "wheel":
@@ -51,7 +51,7 @@ class Provider(AbstractProvider):
         return candidate.version in requirement.specifier
     def get_dependencies(self, candidate):
         print(f"get_dependencies({candidate})")
-        return candidate.dependencies()
+        return list(candidate.dependencies())
 
 def main(reqs):
     # Things I want to resolve.
